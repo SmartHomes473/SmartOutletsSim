@@ -8,8 +8,13 @@ fi
 
 # Listen for incomming connection
 if [ ! -e /dev/rfcomm0 ]; then
-	sudo rfcomm listen /dev/rfcomm0 22 > /dev/null &
+	sudo rfcomm watch /dev/rfcomm0 22 > /dev/null &
+	RFCOMM_PID=$!
 fi
 
 # Launch emultor
 ./server.py
+
+if [ ! -n ${RFCOMM_PID} ]; then
+	sudo kill ${RFCOMM_PID}
+fi
