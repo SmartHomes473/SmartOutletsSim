@@ -4,11 +4,6 @@ import os.path
 import subprocess
 import time
 
-RFCOMM = '/dev/rfcomm0'
-API_HANDLERS = {
-    '0x01': api_unimplemented
-}
-
 def p_error ( msg ):
     print('[e]: %s' % msg)
 
@@ -21,6 +16,13 @@ def p_warn ( msg ):
 def api_unimplemented ( payload ):
     p_info('api unimplemented')
     return ''
+
+RFCOMM = '/dev/rfcomm0'
+API_HANDLERS = {
+    '0x01': api_unimplemented
+}
+DELIM = 'a'
+
 
 if __name__ == '__main__':
 
@@ -38,11 +40,12 @@ if __name__ == '__main__':
 
         while True:
             # receive command
-            packet = [ord(c) for c in rf_rx.readline().rstrip('\n')]
-            print('[p]: %s' % cmd)
+            message = rf_rx.readline().rstrip('\n')
+            packet = [ord(c) for c in message]
+            print('[p]: %s' % message)
 
             # verify min length
-            if len(cmd) < 5:
+            if len(packet) < 5:
                 p_error('malformed packet')
                 continue
 
