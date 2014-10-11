@@ -1,85 +1,47 @@
 #!/usr/bin/env python3
+#
+# author: Albert Huang <albert@csail.mit.edu>
+# modified by: Nick Jugens <njurgens@umich.edu>
 
-import os.path
-import subprocess
-import time
+"""A python RFCOMM server."""
 
-def p_error ( msg ):
-    print('[e]: %s' % msg)
+__license__ = 'GPL-2.0'
 
-def p_info ( msg ):
-    print('[i]: %s' % msg)
+from bluetooth import *
 
-def p_warn ( msg ):
-    print('[w]: %s' % msg)
+server_sock = BluetoothSocket(RFCOMM)
+server_sock.bind(('', 22))
+server_sock.listen(1)
 
-def api_unimplemented ( payload ):
-    p_info('api unimplemented')
-    return ''
+port = server_sock.getsockname()[1]
 
-RFCOMM = '/dev/rfcomm0'
-API_HANDLERS = {
-    '0x01': api_unimplemented
-}
-DELIM = 'a'
+# UUID of Bluetooth Serial Port Profile
+uuid = '00001101-0000-1000-8000-00805F9B34FB'
 
+# Register our service
+advertise_service( server_sock, "SampleServer",
+        service_id = uuid,
+        service_classes = [ uuid, SERIAL_PORT_CLASS ],
+        profiles = [ SERIAL_PORT_PROFILE ]
+)
 
-if __name__ == '__main__':
+print('Waiting for connection on RFCOMM channel %d' % port)
 
-    # wait for connection
-    while not os.path.exists(RFCOMM):
-        time.sleep(1);
+while True:
+    client_sock, client_info = server_sock.accept()
+    print('Accepted connecton from ', client_info)
 
-    # open device
-    with open(RFCOMM, 'r')  as rf_rx:
-        # connection established
-        print('[i]: connected')
-
-        # we need a separate stream for output
-        rf_tx = open(RFCOMM, 'w')
-
+    try:
         while True:
-            # receive command
-            message = rf_rx.readline().rstrip('\n')
-            packet = [ord(c) for c in message]
-            print('[p]: %s' % message)
+            data = client_sock.recv(1024)
+            if len(data) == 0:
+                break
+            print('received [%s]' % data)
+    except IOError:
+        pass
 
-            # verify min length
-            if len(packet) < 5:
-                p_error('malformed packet')
-                continue
+    print('disconnected')
+    client_sock.close()
 
-            # parse packet
-            delim = packet[0]
-            length = (packet[1] << 8) + packet[2]
-            api = packet[3]
-            payload = packet[4:-1]
-            checksum = packet[-1]
-
-            # verify delimiter
-            if delim != DELIM:
-                p_error('invalid delimiter: 0x%x' % delim)
-                continue
-
-            # verify length and generate a non-fatal warning on mismatch
-            if length != len(packet[3:-1]):
-                p_warn('length: expected 0x%x, got 0x%x' % (length, len(packet[3:-1])))
-
-            # calculate and verify checksum and generate fatal error on mismatch
-            chk = 0xFF - (sum(packet[3:-1]) & 0xFF)
-            if chk != checksum:
-                p_error('checksum: expected 0x%x, got 0x%x' % (checksum, chk))
-                continue
-
-            # if the API is not supported, generate a fatal error
-            if api not in API_HANDLERS:
-                p_error('api unsupported: 0x%x' % api)
-                continue
-
-            # execute API handler
-            p_info('running api: 0x%x' % api)
-            tx_payload = API_HANDLERS[api](payload)
-
-
-
-
+server_sock.close()
+print('all done')
