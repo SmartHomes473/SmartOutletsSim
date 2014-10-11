@@ -18,6 +18,16 @@ class Simulator():
 
         return outlet_info
 
+    def registerOutlets(self, outlets_ids):
+        """Add outlets to the simulator."""
+        for oid in outlets:
+            self.outlets[oid] = Outlet(oid, False)
+
+    def setOutletPower(self, outlets):
+        """Sets the power state for a list of outlets."""
+        for oid, powered in outlets:
+            self.outlets[oid].setPowered(powered)
+
 class Outlet():
 
     def __init__(self, oid, powered):
@@ -29,6 +39,9 @@ class Outlet():
 
     def isPowered(self):
         return self.powered
+
+    def setPowered(self, powered):
+        self.powered = True if powered else False
 
     def clone(self):
         return Outlet(self.oid, self.powered)
