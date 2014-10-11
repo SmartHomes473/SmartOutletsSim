@@ -1,2 +1,6 @@
 *.swp
 *.swo
+
+__pycach__
+*.pyc
+*.pyo
