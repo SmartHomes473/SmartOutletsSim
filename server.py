@@ -21,6 +21,9 @@ if __name__ == '__main__':
     simulator = sim.coordinator.Simulator()
     api_parser = api.smartoutlets.APIParser(simulator)
 
+    # popuate the simulator with some outlets
+    simulator.registerOutlets(range(0, 10))
+
     # set up the Bluetooth server
     server_sock = BluetoothSocket(RFCOMM)
     server_sock.bind(('', rfcomm_channel))
@@ -48,7 +51,8 @@ if __name__ == '__main__':
                 if len(data) == 0:
                     break
 
-                api_parser.respond(data)
+                response = api_parser.respond(data)
+                client_sock.send(response)
 
         except IOError:
             pass
