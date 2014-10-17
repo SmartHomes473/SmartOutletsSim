@@ -53,7 +53,7 @@ class Outlet():
         self.powered = True if powered else False
 
     def getPower(self):
-        self.power = random.randint(0, 100)
+        self.power = random.randint(0, 100) if self.powered else 0
         msb = (self.power >> 8) & 0xFF
         lsb = self.power & 0xFF
         return msb, lsb
