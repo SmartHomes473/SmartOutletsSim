@@ -31,7 +31,7 @@ class APIParser(generic.APIParser):
             REQ_OUTLETS: self._resp_outlets,
             REQ_POWER_STATS: self._resp_power_stats,
             REQ_SCHEDULE: self._req_schedule,
-            SET_POWER_STATE: self._set_power_state,
+            SET_POWER_STATE: self._resp_power_state,
             SCHEDULE_TASKS: self._schedule_tasks,
             UNSCHEDULE_TASKS: self._unschedule_tasks
         }
@@ -72,11 +72,21 @@ class APIParser(generic.APIParser):
     def _req_schedule(self, data_segment):
         pass
 
-    def _set_power_state(self, data_segment):
-        pass
+    def _resp_power_state(self, data_segment):
+        # Right now we only support operating on one outlet
+        oid = data_segment[0] & 0x7F
+        powered = data_segment[0] != oid
+
+        print('[a] setting outlet %i to %s' % (oid, 'ON' if powered else 'OFF'))
+
+        self.server.setOutletPower([(oid, powered)])
+        return self._resp_ack()
 
     def _schedule_tasks(self, data_segment):
         pass
 
     def _unschedule_tasks(self, data_segment):
         pass
+
+    def _resp_ack(self):
+        return ACK, []
