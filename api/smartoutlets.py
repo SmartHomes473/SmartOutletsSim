@@ -59,7 +59,7 @@ class APIParser(generic.APIParser):
 
         # construct the response data segment
         response = []
-        response.append(len(outlet_info)*3)
+        response.append(len(outlet_info))
         for outlet in outlet_info:
             outlet_id = outlet.getId() | (0x80 if outlet.isPowered() else 0x0)
             response.append(outlet_id)
