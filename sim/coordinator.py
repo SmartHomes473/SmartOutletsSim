@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import copy
+import random
 
 class Simulator():
 
@@ -52,6 +53,7 @@ class Outlet():
         self.powered = True if powered else False
 
     def getPower(self):
+        self.power = random.randint(0, 100)
         msb = (self.power >> 8) & 0xFF
         lsb = self.power & 0xFF
         return msb, lsb
